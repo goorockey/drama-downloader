@@ -14,6 +14,7 @@ import time
 from datetime import datetime, date
 from lxml import html
 from baidupcsapi import PCS
+from baidupcsapi.api import LoginFailed
 from cloudsight import recognize_img
 
 
@@ -37,6 +38,22 @@ def _parse_conf(conf_file):
         logger.error('Failed to open conf file(%s).', _CONF_FILE)
         sys.exit(-1)
 
+<<<<<<< HEAD
+=======
+
+def _recognize_img(img):
+    logger.info('Try to recognize captcha...')
+    result = recognize_img(img)
+    if not result:
+        return ''
+
+    m = re.search(r'\d+', result)
+    if m:
+        return m.group()
+
+    return ''
+
+>>>>>>> 388a46e... Ask to enter captcha if failed to recognize
 
 def _get_pcs(conf):
     def _captcha_callback(img):
@@ -45,9 +62,17 @@ def _get_pcs(conf):
         if not result:
             return ''
 
+<<<<<<< HEAD
         m = re.search(r'\d+', result)
         if m:
             return m.group()
+=======
+        with open(_CODE_FILE, 'wb') as f:
+            f.write(img)
+
+        logger.info('Code is saved to %s. Please enter captcha code.' % _CODE_FILE)
+        return raw_input('captcha> ')
+>>>>>>> 388a46e... Ask to enter captcha if failed to recognize
 
         return ''
 
@@ -60,7 +85,7 @@ def _get_pcs(conf):
         password = conf.get('baidupan', 'password')
         if not username or not password:
             logger.error('No username or password found.')
-            return
+            sys.exit(-1)
 
         _pcs = PCS(username,
                   password,
@@ -69,7 +94,7 @@ def _get_pcs(conf):
         logger.info('Baidupan login successfully.')
 
         return _pcs
-    except:
+    except LoginFailed:
         import traceback
         traceback.print_exc()
         logger.error('Failed to login in baidupan.')
