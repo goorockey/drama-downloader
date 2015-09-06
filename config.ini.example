@@ -1,0 +1,7 @@
+[drama]
+suits=http://cn163.net/archives/18591/;//div[@id='entry']//strong[2]/preceding-sibling::a[1]/@href
+
+[baidupan]
+username=
+password=
+dest_dir=/Movies/Drama

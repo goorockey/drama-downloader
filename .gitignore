@@ -82,4 +82,10 @@ docs/_build/
 
 # PyBuilder
 target/
+<<<<<<< HEAD
 >>>>>>> d31b565... Initial commit
+=======
+
+config.ini
+*.cookies
+>>>>>>> d3ffd13... Finish offline download
