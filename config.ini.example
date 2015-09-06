@@ -3,7 +3,6 @@ username=
 password=
 dest_dir=/Movies/Drama
 
+; drama_name=drama_site,download_day
 [drama]
-#suits=http://cn163.net/archives/18591/;5;//div[@id='entry']//strong[2]/preceding-sibling::a[1]/@href
-suits=http://kanmeiju.net/detail/1829.html;5;//div[@class='vpl'][1]//a[contains(@href, 'ed2k://')][last()]/@href
-
+suits=http://kanmeiju.net/detail/1829.html,5

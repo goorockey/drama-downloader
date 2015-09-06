@@ -16,11 +16,15 @@ from lxml import html
 from baidupcsapi import PCS
 from baidupcsapi.api import LoginFailed
 from cloudsight import recognize_img
+from const import _CONF_FILE, _LOG_FILE, _CODE_FILE, _SUPPORT_SITES
 
 
+<<<<<<< HEAD
 _CONF_FILE = 'config.ini'
 _LOG_FILE = 'history.log'
 
+=======
+>>>>>>> 9df9d9b... Limit drama url in supported sites only
 _pcs = None
 _history = {}
 
@@ -32,10 +36,14 @@ logger.setLevel(logging.INFO)
 def _parse_conf(conf_file):
     try:
         conf = ConfigParser.SafeConfigParser()
+        if not os.path.exists(conf_file):
+            logger.error('No config file found.')
+            sys.exit(-1)
+
         conf.read(conf_file)
         return conf
     except:
-        logger.error('Failed to open conf file(%s).', _CONF_FILE)
+        logger.error('Failed to open config file(%s).', conf_file)
         sys.exit(-1)
 
 <<<<<<< HEAD
@@ -110,9 +118,19 @@ def download_drama(args):
     today = date.today()
 
     for key, value in conf.items('drama'):
-        url, day, rule = map(lambda x: x.strip(), value.split(';'))
-        if not url or not rule:
-            logger.error('Url or rule not found. (key=%s)', key)
+        drama_url, day = map(lambda x: x.strip(), value.split(','))
+        if not drama_url or not day:
+            logger.error('Url or day must be given. (key=%s)', key)
+            continue
+
+        rule = ''
+        for key, value in _SUPPORT_SITES.items():
+            if drama_url.startswith(key):
+                rule = value
+                break
+
+        if not rule:
+            logger.error('Unsupported site: %s.', drama_url)
             continue
 
         day = int(day)
@@ -125,9 +143,9 @@ def download_drama(args):
             continue
 
         try:
-            r = requests.get(url)
+            r = requests.get(drama_url)
             if not r.ok:
-                logger.error('Failed to fetch %s', url)
+                logger.error('Failed to fetch %s', drama_url)
                 continue
 
             tree = html.fromstring(r.text)
