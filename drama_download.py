@@ -119,8 +119,9 @@ def download_drama(args):
         if day <= 0 or day - 1 != datetime.today().weekday():
             continue
 
-        last_download = _get_history(key)
-        if last_download is not None and last_download >= today:
+        download_history = _get_history(key)
+        if download_history is not None and \
+           download_history['date'] >= today:
             continue
 
         try:
@@ -135,6 +136,17 @@ def download_drama(args):
                 logger.error('No resource found. (key=%s)', key)
                 continue
 
+<<<<<<< HEAD
+=======
+            resource_url = str(resource_url[0])
+
+            if download_history is not None and \
+               download_history['url'] == resource_url:
+                _set_history(key, resource_url)
+                logger.info('No new resource found. (key=%s, url=%s)',
+                             key, resource_url)
+                continue
+>>>>>>> 9f35ada... Save resource url in history
 
             pcs = _get_pcs(conf)
             pcs.add_download_task(resource_url,
@@ -145,27 +157,35 @@ def download_drama(args):
                              key, resource_url)
                 continue
 
-            _set_history(key)
+            _set_history(key, resource_url)
 
             logger.info('Add download task successfully. (key=%s, url=%s)',
                         key, resource_url)
 
         except Exception as e:
             logger.error('Error: %s', e.message)
+            raise
 
     if args.daemon:
         _schedule.enter(24 * 3600, 0, download_drama, (args, ))
 
 
-def _set_history(key):
-    _history[key] = str(date.today())
+def _set_history(key, url):
+    _history[key] = {
+        'date': str(date.today()),
+        'url': str(url),
+    }
+
     _save_history()
 
 
 def _get_history(key):
-    value = _history.get(key)
-    if value is not None:
-        return datetime.strptime(_history.get(key), '%Y-%m-%d').date()
+    data = _history.get(key)
+    if data is None:
+        return
+
+    data['date'] = datetime.strptime(data['date'], '%Y-%m-%d').date()
+    return data
 
 
 def _save_history():
