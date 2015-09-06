@@ -7,6 +7,7 @@ import logging
 
 
 logger = logging.getLogger('cloudsight')
+_RETRY_MAX = 10
 
 
 def recognize_img(imgdata, file_name='code.jpg'):
@@ -29,10 +30,10 @@ def recognize_img(imgdata, file_name='code.jpg'):
     token = token_req.json().get('token')
     if not token:
         logger.error('Failed to upload file')
-        return ''
+        return
 
     count = 0
-    while count < 10:
+    while count < _RETRY_MAX:
         try:
             count += 1
             result = requests.get('%s%s'%(res_url, token), headers=headers)

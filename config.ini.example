@@ -3,6 +3,5 @@ username=
 password=
 dest_dir=/Movies/Drama
 
-; drama_name=drama_site,download_day
 [drama]
-suits=http://kanmeiju.net/detail/1829.html,5
+;suits=http://kanmeiju.net/detail/1829.html

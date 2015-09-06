@@ -19,12 +19,14 @@ from cloudsight import recognize_img
 from const import _CONF_FILE, _LOG_FILE, _CODE_FILE, _SUPPORT_SITES
 
 
-<<<<<<< HEAD
-_CONF_FILE = 'config.ini'
-_LOG_FILE = 'history.log'
+# fix problem for pyinstaller
+# https://github.com/kennethreitz/requests/issues/557
+os.environ['REQUESTS_CA_BUNDLE'] = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    'cacert.pem'
+)
 
-=======
->>>>>>> 9df9d9b... Limit drama url in supported sites only
+
 _pcs = None
 _history = {}
 
@@ -46,8 +48,6 @@ def _parse_conf(conf_file):
         logger.error('Failed to open config file(%s).', conf_file)
         sys.exit(-1)
 
-<<<<<<< HEAD
-=======
 
 def _recognize_img(img):
     logger.info('Try to recognize captcha...')
@@ -61,28 +61,19 @@ def _recognize_img(img):
 
     return ''
 
->>>>>>> 388a46e... Ask to enter captcha if failed to recognize
 
 def _get_pcs(conf):
     def _captcha_callback(img):
-        logger.info('Try to recognize captcha...')
-        result = recognize_img(img)
-        if not result:
-            return ''
+        code = _recognize_img(img)
+        if code:
+            return code
 
-<<<<<<< HEAD
-        m = re.search(r'\d+', result)
-        if m:
-            return m.group()
-=======
         with open(_CODE_FILE, 'wb') as f:
             f.write(img)
 
         logger.info('Code is saved to %s. Please enter captcha code.' % _CODE_FILE)
         return raw_input('captcha> ')
->>>>>>> 388a46e... Ask to enter captcha if failed to recognize
 
-        return ''
 
     global _pcs
     if _pcs:
@@ -109,76 +100,67 @@ def _get_pcs(conf):
         sys.exit(-1)
 
 
+def _get_rule(url):
+    for name, value in _SUPPORT_SITES.items():
+        if url.startswith(name):
+            return value
+
+
 def download_drama(args):
+    logger.info('Begin to download drama...')
+
     conf = _parse_conf(args.config)
-    _LOG_FILE = args.log
 
     _load_history()
 
-    today = date.today()
-
-    for key, value in conf.items('drama'):
-        drama_url, day = map(lambda x: x.strip(), value.split(','))
-        if not drama_url or not day:
-            logger.error('Url or day must be given. (key=%s)', key)
+    for name, drama_url in conf.items('drama'):
+        drama_url = drama_url.strip()
+        if not drama_url:
+            logger.error('Drama url must be given. (name=%s)', name)
             continue
 
-        rule = ''
-        for key, value in _SUPPORT_SITES.items():
-            if drama_url.startswith(key):
-                rule = value
-                break
-
+        # get drama parse rule
+        rule = _get_rule(drama_url)
         if not rule:
-            logger.error('Unsupported site: %s.', drama_url)
-            continue
-
-        day = int(day)
-        if day <= 0 or day - 1 != datetime.today().weekday():
-            continue
-
-        download_history = _get_history(key)
-        if download_history is not None and \
-           download_history['date'] >= today:
+            logger.error('Unsupported site: %s.\nSupported sites:%s', drama_url, _SUPPORT_SITES.keys())
             continue
 
         try:
+            # fetch content from drama url
             r = requests.get(drama_url)
             if not r.ok:
                 logger.error('Failed to fetch %s', drama_url)
                 continue
 
+            # parse drama download url
             tree = html.fromstring(r.text)
             resource_url = tree.xpath(rule)
             if not resource_url:
-                logger.error('No resource found. (key=%s)', key)
+                logger.error('No resource found. (name=%s)', name)
                 continue
 
-<<<<<<< HEAD
-=======
             resource_url = str(resource_url[0])
 
+            download_history = _get_history(name)
+            # check download history
             if download_history is not None and \
                download_history['url'] == resource_url:
-                _set_history(key, resource_url)
-                logger.info('No new resource found. (key=%s, url=%s)',
-                             key, resource_url)
                 continue
->>>>>>> 9f35ada... Save resource url in history
 
+            # add download task in baidupan
             pcs = _get_pcs(conf)
             pcs.add_download_task(resource_url,
                                   '%s/%s/' % (conf.get('baidupan', 'dest_dir'),
-                                              key))
+                                              name))
             if not r.ok:
-                logger.error('Failed to add download task. (key=%s, url=%s)',
-                             key, resource_url)
+                logger.error('Failed to add download task. (name=%s, url=%s)',
+                             name, resource_url)
                 continue
 
-            _set_history(key, resource_url)
-
-            logger.info('Add download task successfully. (key=%s, url=%s)',
-                        key, resource_url)
+            # save download history
+            _set_history(name, resource_url)
+            logger.info('Add download task successfully. (name=%s, url=%s)',
+                        name, resource_url)
 
         except Exception as e:
             logger.error('Error: %s', e.message)
@@ -190,7 +172,6 @@ def download_drama(args):
 
 def _set_history(key, url):
     _history[key] = {
-        'date': str(date.today()),
         'url': str(url),
     }
 
@@ -198,12 +179,7 @@ def _set_history(key, url):
 
 
 def _get_history(key):
-    data = _history.get(key)
-    if data is None:
-        return
-
-    data['date'] = datetime.strptime(data['date'], '%Y-%m-%d').date()
-    return data
+    return _history.get(key)
 
 
 def _save_history():
@@ -227,7 +203,6 @@ def _parse_args():
 
     parser.add_argument('-d', dest='daemon', action='store_true', help='Daemon mode.')
     parser.add_argument('-c', dest='config', default=_CONF_FILE, help="Config file. Default is %s" % _CONF_FILE)
-    parser.add_argument('-l', dest='log', default=_LOG_FILE, help="Log file. Default is %s" % _LOG_FILE)
 
     return parser.parse_args()
 
