@@ -4,13 +4,14 @@
 # Creates a task-bar icon with balloon tip.  Run from Python.exe to see the
 # messages printed.  Right click for balloon tip.  Double click to exit.
 # original version of this demo available at http://www.itamarst.org/software/
-import pywintypes, win32api, win32con, win32gui, win32process
+import win32api, win32con, win32gui, win32process
 import sys, os, ctypes
 
-WM_TASKBARNOTIFY = win32con.WM_USER+20
+WM_TASKBARNOTIFY = win32con.WM_USER + 20
 WM_TASKBARNOTIFY_MENUITEM_SHOW = win32con.WM_USER + 21
 WM_TASKBARNOTIFY_MENUITEM_HIDE = win32con.WM_USER + 22
-WM_TASKBARNOTIFY_MENUITEM_EXIT = win32con.WM_USER + 23                 
+WM_TASKBARNOTIFY_MENUITEM_EXIT = win32con.WM_USER + 23
+
 
 class Taskbar(object):
     def __init__(self, cmd, tooltip):
@@ -20,22 +21,22 @@ class Taskbar(object):
         message_map = {
             win32con.WM_DESTROY: self.onDestroy,
             win32con.WM_COMMAND: self.onCommand,
-            WM_TASKBARNOTIFY : self.onTaskbarNotify,
+            WM_TASKBARNOTIFY: self.onTaskbarNotify,
         }
         # Register the Window class.
         wc = win32gui.WNDCLASS()
         wc.hInstance = win32api.GetModuleHandle(None)
         wc.lpszClassName = "PythonTaskbarDemo"
-        wc.style = win32con.CS_VREDRAW | win32con.CS_HREDRAW;
+        wc.style = win32con.CS_VREDRAW | win32con.CS_HREDRAW
         wc.hCursor = win32gui.LoadCursor(0, win32con.IDC_ARROW)
         wc.hbrBackground = win32con.COLOR_WINDOW
-        wc.lpfnWndProc = message_map # could also specify a wndproc.
+        wc.lpfnWndProc = message_map  # could also specify a wndproc.
         classAtom = win32gui.RegisterClass(wc)
         # Create the Window.
         style = win32con.WS_OVERLAPPED | win32con.WS_SYSMENU
-        self.hwnd = win32gui.CreateWindow( classAtom, "Taskbar Demo", style, \
-                    0, 0, win32con.CW_USEDEFAULT, win32con.CW_USEDEFAULT, \
-                    0, 0, wc.hInstance, None)
+        self.hwnd = win32gui.CreateWindow(classAtom, "Taskbar Demo", style,
+                                          0, 0, win32con.CW_USEDEFAULT, win32con.CW_USEDEFAULT,
+                                          0, 0, wc.hInstance, None)
         win32gui.UpdateWindow(self.hwnd)
 
         hProcess, hThread, dwProcessId, dwThreadId = win32process.CreateProcess(None, self.cmd, None, None, 0, 0, None, None, win32process.STARTUPINFO())
@@ -43,7 +44,7 @@ class Taskbar(object):
         try:
             hicon, small = win32gui.ExtractIconEx(win32api.GetModuleFileName(0), 0)
             win32gui.DestroyIcon(small[0])
-            #hicon = pywintypes.HANDLE(hicon[0])
+            # hicon = pywintypes.HANDLE(hicon[0])
             hicon = hicon[0]
         except IndexError:
             hicon = win32gui.LoadIcon(0, win32con.IDI_APPLICATION)
@@ -71,14 +72,14 @@ class Taskbar(object):
 
     def onDestroy(self, hwnd, msg, wparam, lparam):
         self.hide()
-        win32gui.PostQuitMessage(0) # Terminate the app.
+        win32gui.PostQuitMessage(0)  # Terminate the app.
 
     def onTaskbarNotify(self, hwnd, msg, wparam, lparam):
         if lparam == win32con.WM_LBUTTONUP:
             self.onClick()
         elif lparam == win32con.WM_LBUTTONDBLCLK:
             self.onDoubleClick()
-        elif lparam ==  win32con.WM_RBUTTONUP:
+        elif lparam == win32con.WM_RBUTTONUP:
             self.onRightClick()
         return 1
 
@@ -86,7 +87,7 @@ class Taskbar(object):
         nID = win32api.LOWORD(wparam)
         hwnd = ctypes.windll.kernel32.GetConsoleWindow()
         if nID == WM_TASKBARNOTIFY_MENUITEM_SHOW:
-            win32gui.ShowWindow(hwnd, win32con.SW_SHOW|win32con.SW_MAXIMIZE)
+            win32gui.ShowWindow(hwnd, win32con.SW_SHOW | win32con.SW_MAXIMIZE)
         elif nID == WM_TASKBARNOTIFY_MENUITEM_HIDE:
             win32gui.ShowWindow(hwnd, win32con.SW_HIDE)
         elif nID == WM_TASKBARNOTIFY_MENUITEM_EXIT:
@@ -98,7 +99,7 @@ class Taskbar(object):
     def onClick(self):
         hwnd = ctypes.windll.kernel32.GetConsoleWindow()
         v = ctypes.windll.user32.IsWindowVisible(hwnd)
-        win32gui.ShowWindow(hwnd, {1:0,0:1}[v])
+        win32gui.ShowWindow(hwnd, {1: 0, 0: 1}[v])
         win32gui.SetForegroundWindow(hwnd)
 
     def onDoubleClick(self):
@@ -114,7 +115,8 @@ class Taskbar(object):
         win32gui.TrackPopupMenu(menu, win32con.TPM_LEFTALIGN, pos[0], pos[1], 0, self.hwnd, None)
         win32gui.PostMessage(self.hwnd, win32con.WM_NULL, 0, 0)
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
     os.environ['PYTHONOPTIMIZE'] = 'x'
     t = Taskbar('drama_download.exe -d ', 'Drama downloader (by goorockey)')

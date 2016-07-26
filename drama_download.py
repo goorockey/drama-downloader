@@ -2,7 +2,6 @@
 
 import sys
 import logging
-import json
 import re
 import pickle
 import os
@@ -11,7 +10,6 @@ import ConfigParser
 import requests
 import sched
 import time
-from datetime import datetime, date
 from lxml import html
 from baidupcsapi import PCS
 from baidupcsapi.api import LoginFailed
@@ -74,7 +72,6 @@ def _get_pcs(conf):
         logger.info('Code is saved to %s. Please enter captcha code.' % _CODE_FILE)
         return raw_input('captcha> ')
 
-
     global _pcs
     if _pcs:
         return _pcs
@@ -87,8 +84,8 @@ def _get_pcs(conf):
             sys.exit(-1)
 
         _pcs = PCS(username,
-                  password,
-                  captcha_callback=_captcha_callback)
+                   password,
+                   captcha_callback=_captcha_callback)
 
         logger.info('Baidupan login successfully.')
 
@@ -153,13 +150,13 @@ def download_drama(args):
                                   '%s/%s/' % (conf.get('baidupan', 'dest_dir'),
                                               name))
             if not r.ok:
-                logger.error('Failed to add download task. (name=%s, url=%s)',
+                logger.error('Failed to add download task. \n(name=%s, url=%s)',
                              name, resource_url)
                 continue
 
             # save download history
             _set_history(name, resource_url)
-            logger.info('Add download task successfully. (name=%s, url=%s)',
+            logger.info('Add download task successfully. \n(name=%s, url=%s)',
                         name, resource_url)
 
         except Exception as e:

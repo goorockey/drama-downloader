@@ -1,7 +1,5 @@
 # coding: utf8
 
-import sys
-import time
 import requests
 import logging
 
@@ -36,9 +34,9 @@ def recognize_img(imgdata, file_name='code.jpg'):
     while count < _RETRY_MAX:
         try:
             count += 1
-            result = requests.get('%s%s'%(res_url, token), headers=headers)
+            result = requests.get('%s%s' % (res_url, token), headers=headers)
             status = result.json()['status']
             if status == 'completed':
                 return result.json()['name']
-        except Exception, e:
+        except Exception:
             logger.error('Failed to get image recognize result.')
