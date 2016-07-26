@@ -13,8 +13,8 @@ import time
 from lxml import html
 from baidupcsapi import PCS
 from baidupcsapi.api import LoginFailed
-from cloudsight import recognize_img
-from const import _CONF_FILE, _LOG_FILE, _CODE_FILE, _SUPPORT_SITES
+from cloudsight import recognize_img_url
+from const import _CONF_FILE, _LOG_FILE, _SUPPORT_SITES
 
 
 # fix problem for pyinstaller
@@ -47,29 +47,23 @@ def _parse_conf(conf_file):
         sys.exit(-1)
 
 
-def _recognize_img(img):
+def _recognize_img(img_url):
     logger.info('Try to recognize captcha...')
-    result = recognize_img(img)
+    result = recognize_img_url(img_url)
     if not result:
         return ''
 
-    m = re.search(r'\d+', result)
-    if m:
-        return m.group()
-
-    return ''
+    m = re.search(r'\w+', result)
+    return m.group() if m else ''
 
 
 def _get_pcs(conf):
-    def _captcha_callback(img):
-        code = _recognize_img(img)
+    def _captcha_callback(img_url):
+        code = _recognize_img(img_url)
         if code:
             return code
 
-        with open(_CODE_FILE, 'wb') as f:
-            f.write(img)
-
-        logger.info('Code is saved to %s. Please enter captcha code.' % _CODE_FILE)
+        logger.info('%s\nOpen url above, then input verify code.' % img_url)
         return raw_input('captcha> ')
 
     global _pcs
