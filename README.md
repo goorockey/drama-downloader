@@ -33,3 +33,9 @@ Download drama everyday
 
 - <http://cn163.net>
 - <http://kanmeiju.net>
+
+## Generate exe
+
+    pip install pyinstaller
+    pyinstaller --onefile --console --distpath . drama_download.py
+    pyinstaller --onefile --console --distpath . taskbar.py
