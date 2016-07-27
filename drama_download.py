@@ -77,9 +77,9 @@ def _get_pcs(conf):
             logger.error('No username or password found.')
             sys.exit(-1)
 
-        _pcs = PCS(username,
-                   password,
-                   captcha_callback=_captcha_callback)
+        # _pcs = PCS(username, password,
+        #            captcha_callback=_captcha_callback)
+        _pcs = PCS(username, password)
 
         logger.info('Baidupan login successfully.')
 
